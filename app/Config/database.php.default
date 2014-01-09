@@ -81,21 +81,21 @@ class DATABASE_CONFIG {
 		$configs = allEnvByPrefix('DATABASE_URL');
 
 		foreach ($configs as $connection => $url) {
-			$parsed = parse_url($url);
+			$parsed = parseEnvUrl($url);
 			if (!$parsed) {
 				continue;
 			}
 
 			$connection = strtolower($connection);
-			$this->$connection = array(
+			$this->$connection = $parsed + array(
 				'datasource' => 'Database/' . ucfirst(strtolower($parsed['scheme'])),
-				'persistent' => false,
+				'persistent' => Hash::get($parsed, 'persistent'),
 				'host'       => Hash::get($parsed, 'host'),
 				'login'      => Hash::get($parsed, 'user'),
 				'password'   => Hash::get($parsed, 'pass'),
 				'database'   => substr($parsed['path'], 1),
-				'prefix'     => '',
-				'encoding'   => 'utf8',
+				'persistent' => Hash::get($parsed, 'persistent'),
+				'encoding'   => Hash::get($parsed, 'encoding') ?: 'utf8',
 			);
 		}
 	}
