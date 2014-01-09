@@ -102,16 +102,13 @@ class Env {
 			$return += $callback($key, $config, $defaults);
 		}
 
-		debug(func_get_args());
-		debug ($prefix);
-		debug ($return);
-		`read foo`;
-
 		return static::_replace($return, $replacements);
 	}
 
 /**
  * parseUrl
+ *
+ * Parse a url and merge with any extra get arguments defined
  *
  * @param string $string
  * @return array
