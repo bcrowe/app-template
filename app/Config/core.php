@@ -78,11 +78,17 @@ function allEnvByPrefix($prefix, $defaultKey = 'default') {
 }
 
 // Helper function to parse urls from environment variables
-function parseUrlFromEnv($key, $default = null) {
-	if (($value = env($key)) !== null) {
-		return parse_url($value);
+function parseEnvUrl($value) {
+	$url = parse_url($value);
+
+	if (isset($url['query'])) {
+		$extra = array();
+		parse_str($url['query'], $extra);
+		unset($url['query']);
+		$url += $extra;
 	}
-	return false;
+
+	return $url;
 }
 
 /**
@@ -377,7 +383,6 @@ function parseUrlFromEnv($key, $default = null) {
  *       Please check the comments in bootstrap.php for more info on the cache engines available
  *       and their settings.
  */
-$engine = 'File';
 
 // In development mode, caches should expire quickly.
 $duration = '+999 days';
@@ -386,44 +391,63 @@ if (Configure::read('debug') > 0) {
 }
 
 // Prefix each application on the same server with a different string, to avoid Memcache and APC conflicts.
-$prefix = env('CACHE_PREFIX') ?: 'myapp_';
+$prefix = 'myapp_';
 
-/**
- * Configure the cache used for general framework caching. Path information,
- * object listings, and translation cache files are stored with this configuration.
- */
-$_CACHE_URL = parseUrlFromEnv('CAKE_CORE_CACHE_URL', env('CACHE_URL') ?: 'file:');
-if ($_CACHE_URL) {
-	Cache::config('_cake_core_', [
-		'engine' => ucfirst(Hash::get($_CACHE_URL, 'scheme')),
-		'prefix' => $prefix . 'cake_core_',
-		'path' => CACHE . 'persistent' . DS,
-		'serialize' => ($engine === 'File'),
-		'duration' => $duration,
-		'login' => Hash::get($_CACHE_URL, 'user'),
-		'password' => Hash::get($_CACHE_URL, 'pass'),
-		'server' => Hash::get($_CACHE_URL, 'host'),
-		'servers' => Hash::get($_CACHE_URL, 'host'),
-		'port' => Hash::get($_CACHE_URL, 'port'),
-	]);
-}
+$configs = allEnvByPrefix('CACHE_URL');
 
-/**
- * Configure the cache for model and datasource caches. This cache configuration
- * is used to store schema descriptions, and table listings in connections.
- */
-$_CACHE_URL = parseUrlFromEnv('CAKE_MODEL_CACHE_URL', env('CACHE_URL') ?: 'file:');
-if ($_CACHE_URL) {
-	Cache::config('_cake_model_', [
-		'engine' => ucfirst(Hash::get($_CACHE_URL, 'scheme')),
-		'prefix' => $prefix . 'cake_model_',
-		'path' => CACHE . 'models' . DS,
-		'serialize' => ($engine === 'File'),
-		'duration' => $duration,
-		'login' => Hash::get($_CACHE_URL, 'user'),
-		'password' => Hash::get($_CACHE_URL, 'pass'),
-		'server' => Hash::get($_CACHE_URL, 'host'),
-		'servers' => Hash::get($_CACHE_URL, 'host'),
-		'port' => Hash::get($_CACHE_URL, 'port'),
-	]);
+if ($configs) {
+	$replacements = [
+		'PREFIX' => isset($configs['default']['prefix']) ? $configs['default']['prefix'] : $prefix,
+		'/CACHE/' => CACHE,
+	];
+	foreach($configs as $connection => $url) {
+		$config = parseEnvUrl($url);
+		if (!$config) {
+			continue;
+		}
+
+
+		$name = isset($config['name']) ? $config['name'] : strtolower(trim($connection, '_'));
+		$engine = isset($config['engine']) ? $config['engine'] : ucfirst(Hash::get($config, 'scheme'));
+
+		$config += array(
+			'engine' => $engine,
+			'serialize' => ($engine === 'File'),
+			'duration' => $duration,
+			'login' => Hash::get($config, 'user'),
+			'password' => Hash::get($config, 'pass'),
+			'server' => Hash::get($config, 'host'),
+			'servers' => Hash::get($config, 'host')
+		);
+		foreach($config as &$val) {
+			$val = str_replace(array_keys($replacements), array_values($replacements), $val);
+		}
+
+		Cache::config($name, $config);
+	}
+} else {
+	$engine = 'File';
+	/**
+	* Configure the cache used for general framework caching. Path information,
+	* object listings, and translation cache files are stored with this configuration.
+	*/
+	Cache::config('_cake_core_', array(
+			'engine' => $engine,
+			'prefix' => $prefix . 'cake_core_',
+			'path' => CACHE . 'persistent' . DS,
+			'serialize' => ($engine === 'File'),
+			'duration' => $duration
+	));
+
+	/**
+	* Configure the cache for model and datasource caches. This cache configuration
+	* is used to store schema descriptions, and table listings in connections.
+	*/
+	Cache::config('_cake_model_', array(
+			'engine' => $engine,
+			'prefix' => $prefix . 'cake_model_',
+			'path' => CACHE . 'models' . DS,
+			'serialize' => ($engine === 'File'),
+			'duration' => $duration
+	));
 }
