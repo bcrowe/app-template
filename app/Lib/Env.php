@@ -19,7 +19,7 @@ class Env {
 
 		$return = [];
 		foreach($keys as $key) {
-			if (strpos($val, $prefix) !== 0) {
+			if (strpos($key, $prefix) !== 0) {
 				continue;
 			}
 
@@ -63,88 +63,70 @@ class Env {
 /**
  * parseCache
  *
- * @param string $prefix
- * @param mixed $duration
+ * @param array $defaults
  * @return array
  */
-	public static function parseCache($prefix = 'my_app_', $duration = null) {
-		$configs = static::allByPrefix('CACHE_URL');
-		if (!$configs) {
+	public static function parseCache($defaults = [], $replacements = []) {
+		$data = static::allByPrefix('CACHE_URL');
+		if (!$data) {
 			return false;
 		}
 
-		if ($duration === null) {
-			$duration = '+999 days';
-
-			if (Configure::read('debug') > 0) {
-				$duration = '+10 seconds';
-			}
-		}
-
-		$replacements = [
-			'PREFIX' => isset($configs['default']['prefix']) ? $configs['default']['prefix'] : $prefix,
-			'/CACHE/' => CACHE,
-		];
-
-		foreach($configs as $connection => $url) {
+		foreach($data as $key => $url) {
 			$config = static::parseUrl($url);
 			if (!$config) {
 				continue;
 			}
 
 
-			$name = isset($config['name']) ? $config['name'] : strtolower(trim($connection, '_'));
-			$engine = isset($config['engine']) ? $config['engine'] : ucfirst(Hash::get($config, 'scheme'));
+			$name = isset($config['name']) ? $config['name'] : strtolower(trim($key, '_'));
+			$engine = isset($config['engine']) ? $config['engine'] : ucfirst(static::_get($config, 'scheme'));
 
 			$config += [
 				'engine' => $engine,
 				'serialize' => ($engine === 'File'),
-				'duration' => $duration,
-				'login' => Hash::get($config, 'user'),
-				'password' => Hash::get($config, 'pass'),
-				'server' => Hash::get($config, 'host'),
-				'servers' => Hash::get($config, 'host')
-			];
-
-			foreach($config as &$val) {
-				$val = str_replace(array_keys($replacements), array_values($replacements), $val);
-			}
-
+				'login' => static::_get($config, 'user'),
+				'password' => static::_get($config, 'pass'),
+				'server' => static::_get($config, 'host'),
+				'servers' => static::_get($config, 'host')
+			] + $defaults;
 
 			$return[$name] = $config;
 		}
 
-		return $return;
+		return static::_replace($return, $replacements);
 	}
 
 /**
  * parseDb
  *
+ * @param array $defaults
+ * @param array $replacements
  * @return array
  */
-	public static function parseDb() {
-		$configs = static::allByPrefix('DATABASE_URL');
-		if (!$configs) {
+	public static function parseDb($defaults = [], $replacements = []) {
+		$data = static::allByPrefix('DATABASE_URL');
+		if (!$data) {
 			return false;
 		}
 
-		foreach ($configs as $connection => $url) {
+		foreach ($data as $key => $url) {
 			$parsed = static::parseUrl($url);
 			if (!$parsed) {
 				continue;
 			}
 
-			$connection = strtolower($connection);
-			$return[$connection] = $parsed + [
+			$key = strtolower($key);
+			$return[$key] = $parsed + [
 				'datasource' => 'Database/' . ucfirst(strtolower($parsed['scheme'])),
-				'persistent' => Hash::get($parsed, 'persistent'),
-				'host'       => Hash::get($parsed, 'host'),
-				'login'      => Hash::get($parsed, 'user'),
-				'password'   => Hash::get($parsed, 'pass'),
+				'persistent' => static::_get($parsed, 'persistent'),
+				'host'       => static::_get($parsed, 'host'),
+				'login'      => static::_get($parsed, 'user'),
+				'password'   => static::_get($parsed, 'pass'),
 				'database'   => substr($parsed['path'], 1),
-				'persistent' => Hash::get($parsed, 'persistent'),
-				'encoding'   => Hash::get($parsed, 'encoding') ?: 'utf8',
-			];
+				'persistent' => static::_get($parsed, 'persistent'),
+				'encoding'   => static::_get($parsed, 'encoding') ?: 'utf8',
+			] + $defaults;
 		}
 
 		return $return;
@@ -153,43 +135,79 @@ class Env {
 /**
  * parseLogs
  *
+ * @param array $defaults
+ * @param array $replacements
  * @return array
  */
-	public static function parseLogs() {
-		$configs = static::allByPrefix('LOG_URL', 'debug');
-		if (!$configs) {
+	public static function parseLogs($defaults = [], $replacements = []) {
+		$data = static::allByPrefix('LOG_URL', 'debug');
+		if (!$data) {
 			return false;
 		}
 
-		$replacements = [
-			'/LOGS/' => LOGS
-		];
-		foreach($configs as $connection => $url) {
+		if (defined('LOGS') && !isset($replacement['/LOGS/'])) {
+			$replacements['/LOGS/'] = LOGS;
+		}
+
+		foreach($data as $key => $url) {
 			$config = static::parseUrl($url);
 			if (!$config) {
 				continue;
 			}
 
 
-			$name = isset($config['name']) ? $config['name'] : strtolower(trim($connection, '_'));
-			$engine = isset($config['engine']) ? $config['engine'] : ucfirst(Hash::get($config, 'scheme'));
+			$name = isset($config['name']) ? $config['name'] : strtolower(trim($key, '_'));
+			$engine = isset($config['engine']) ? $config['engine'] : ucfirst(static::_get($config, 'scheme'));
 
 			$config += [
 				'engine' => $engine,
 				'file' => $name
-			];
+			] + $defaults;
 
 			if (isset($config['types']) && !is_array($config['types'])) {
 				$config['types'] = explode(',', $config['types']);
 			}
 
-			foreach($config as &$val) {
-				$val = str_replace(array_keys($replacements), array_values($replacements), $val);
-			}
-
 			$return[$name] = $config;
 		}
 
-		return $return;
+		return static::_replace($return, $replacements);
+	}
+
+/**
+ * get a value out of an array if it exists
+ *
+ * @param array $data
+ * @param string $key
+ * @return mixed
+ */
+	protected static function _get($data, $key) {
+		if (isset($data[$key])) {
+			return $data[$key];
+		}
+
+		return null;
+	}
+
+/**
+ * Recursively perform string replacements on array values
+ *
+ * @param array $data
+ * @param array $replacements
+ * @return array
+ */
+	protected static function _replace($data, $replacements) {
+		if (!$replacements) {
+			return $data;
+		}
+
+		foreach($data as &$value) {
+			$value = str_replace(array_keys($replacements), array_values($replacements), $value);
+			if (is_array($value)) {
+				$value = static::_replace($value, $replacements);
+			}
+		}
+
+		return $data;
 	}
 }

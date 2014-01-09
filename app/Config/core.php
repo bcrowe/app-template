@@ -273,11 +273,19 @@ if (!env('APP_NAME')) {
  */
 	date_default_timezone_set('UTC');
 
+	App::uses('Env', 'Lib');
 /**
  * Configure Cache from environment variables
  */
-	App::uses('Env', 'Lib');
-	$cache = Env::parseCache();
+	$defaults = [
+		'prefix' => 'my_app_',
+		'duration' => Configure::read('debug') ? '+10 seconds' : '+999 days'
+	];
+	$replacements = [
+		'PREFIX' => $defaults['prefix'],
+		'/CACHE/' => CACHE,
+	];
+	$cache = Env::parseCache($defaults, $replacements);
 	foreach($cache as $name => $config) {
 		Cache::config($name, $config);
 	}
@@ -285,7 +293,9 @@ if (!env('APP_NAME')) {
 /**
  * Configure logs from environment variables
  */
-	$logs = Env::parseLogs();
+	$defaults = [];
+	$replacements['/LOGS/'] = LOGS;
+	$logs = Env::parseLogs($defaults, $replacements);
 	foreach($logs as $name => $config) {
 		CakeLog::config($name, $config);
 	}
