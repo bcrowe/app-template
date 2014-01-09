@@ -32,20 +32,6 @@ App::build(
 	App::RESET
 );
 
-// Setup a 'default' cache configuration for use in the application.
-$_CACHE_URL = parseUrlFromEnv('CACHE_URL', 'file:');
-Cache::config('default', array(
-	'engine' => ucfirst(Hash::get($_CACHE_URL, 'scheme')),
-	'prefix' => 'app_default_',
-	'serialize' => ($engine === 'File'),
-	'duration' => '+999 days',
-	'login' => Hash::get($_CACHE_URL, 'user'),
-	'password' => Hash::get($_CACHE_URL, 'pass'),
-	'server' => Hash::get($_CACHE_URL, 'host'),
-	'servers' => Hash::get($_CACHE_URL, 'host'),
-	'port' => Hash::get($_CACHE_URL, 'port'),
-));
-
 /**
  * The settings below can be used to set additional paths to models, views and controllers.
  *
