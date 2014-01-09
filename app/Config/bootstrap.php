@@ -137,3 +137,63 @@ CakeLog::config('error', [
 	'path' =>  env('LOG_PATH') ?: LOGS,
 	'file' => 'error',
 ]);
+
+$configs = allEnvByPrefix('LOG_URL', 'debug');
+
+if ($configs) {
+	$replacements = [
+		'/LOGS/' => LOGS
+	];
+	foreach($configs as $connection => $url) {
+		$config = parseEnvUrl($url);
+		if (!$config) {
+			continue;
+		}
+
+
+		$name = isset($config['name']) ? $config['name'] : strtolower(trim($connection, '_'));
+		$engine = isset($config['engine']) ? $config['engine'] : ucfirst(Hash::get($config, 'scheme'));
+
+		$config += array(
+			'engine' => $engine,
+			'file' => $name
+		);
+
+		if (isset($config['types']) && !is_array($config['types'])) {
+			$config['types'] = explode(',', $config['types']);
+		}
+
+		foreach($config as &$val) {
+			$val = str_replace(array_keys($replacements), array_values($replacements), $val);
+		}
+
+		debug ($config);
+
+		CakeLog::config($name, $config);
+	}
+} else {
+	$engine = 'File';
+	/**
+	* Configure the cache used for general framework caching. Path information,
+	* object listings, and translation cache files are stored with this configuration.
+	*/
+	Cache::config('_cake_core_', array(
+			'engine' => $engine,
+			'prefix' => $prefix . 'cake_core_',
+			'path' => CACHE . 'persistent' . DS,
+			'serialize' => ($engine === 'File'),
+			'duration' => $duration
+	));
+
+	/**
+	* Configure the cache for model and datasource caches. This cache configuration
+	* is used to store schema descriptions, and table listings in connections.
+	*/
+	Cache::config('_cake_model_', array(
+			'engine' => $engine,
+			'prefix' => $prefix . 'cake_model_',
+			'path' => CACHE . 'models' . DS,
+			'serialize' => ($engine === 'File'),
+			'duration' => $duration
+	));
+}
