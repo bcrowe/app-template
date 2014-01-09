@@ -27,18 +27,18 @@ include (ROOT . DS . 'vendor' . DS . 'autoload.php');
 
 // Remove and re-prepend CakePHP's autoloader as composer thinks it is the most important.
 // See https://github.com/composer/composer/commit/c80cb76b9b5082ecc3e5b53b1050f76bb27b127b
-spl_autoload_unregister(array('App', 'load'));
-spl_autoload_register(array('App', 'load'), true, true);
+spl_autoload_unregister(['App', 'load']);
+spl_autoload_register(['App', 'load'], true, true);
 
 // Specify the APP_NAME environment variable to skip .env file loading
 if (!env('APP_NAME')) {
 	try {
-		josegonzalez\Dotenv\Loader::load(array(
+		josegonzalez\Dotenv\Loader::load([
 			'filepath' => __DIR__ . DS . '.env',
 			'toServer' => false,
-			'skipExisting' => array('toServer'),
+			'skipExisting' => ['toServer'],
 			'raiseExceptions' => false
-		));
+		]);
 	} catch (InvalidArgumentException $e) {
 		// Ignore errors loading the file from disk
 	}
@@ -47,7 +47,7 @@ if (!env('APP_NAME')) {
 // Helper function to obtain all env variables with a given prefix
 function allEnvByPrefix($prefix, $defaultKey = 'default') {
 	if (!$prefix) {
-		return array();
+		return [];
 	}
 
 	$values = $_ENV + $_SERVER;
@@ -60,7 +60,7 @@ function allEnvByPrefix($prefix, $defaultKey = 'default') {
 		}
 	);
 
-	$return = array();
+	$return = [];
 	foreach($keys as $key) {
 		$val = $values[$key];
 
@@ -82,7 +82,7 @@ function parseEnvUrl($value) {
 	$url = parse_url($value);
 
 	if (isset($url['query'])) {
-		$extra = array();
+		$extra = [];
 		parse_str($url['query'], $extra);
 		unset($url['query']);
 		$url += $extra;
@@ -410,7 +410,7 @@ if ($configs) {
 		$name = isset($config['name']) ? $config['name'] : strtolower(trim($connection, '_'));
 		$engine = isset($config['engine']) ? $config['engine'] : ucfirst(Hash::get($config, 'scheme'));
 
-		$config += array(
+		$config += [
 			'engine' => $engine,
 			'serialize' => ($engine === 'File'),
 			'duration' => $duration,
@@ -418,7 +418,7 @@ if ($configs) {
 			'password' => Hash::get($config, 'pass'),
 			'server' => Hash::get($config, 'host'),
 			'servers' => Hash::get($config, 'host')
-		);
+		];
 		foreach($config as &$val) {
 			$val = str_replace(array_keys($replacements), array_values($replacements), $val);
 		}
@@ -431,23 +431,23 @@ if ($configs) {
 	* Configure the cache used for general framework caching. Path information,
 	* object listings, and translation cache files are stored with this configuration.
 	*/
-	Cache::config('_cake_core_', array(
+	Cache::config('_cake_core_', [
 			'engine' => $engine,
 			'prefix' => $prefix . 'cake_core_',
 			'path' => CACHE . 'persistent' . DS,
 			'serialize' => ($engine === 'File'),
 			'duration' => $duration
-	));
+	]);
 
 	/**
 	* Configure the cache for model and datasource caches. This cache configuration
 	* is used to store schema descriptions, and table listings in connections.
 	*/
-	Cache::config('_cake_model_', array(
+	Cache::config('_cake_model_', [
 			'engine' => $engine,
 			'prefix' => $prefix . 'cake_model_',
 			'path' => CACHE . 'models' . DS,
 			'serialize' => ($engine === 'File'),
 			'duration' => $duration
-	));
+	]);
 }
