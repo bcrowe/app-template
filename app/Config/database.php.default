@@ -55,48 +55,18 @@
  */
 class DATABASE_CONFIG {
 
-	public $default = [
-		'datasource' => 'Database/Mysql',
-		'persistent' => false,
-		'host' => 'localhost',
-		'login' => 'user',
-		'password' => 'password',
-		'database' => 'database_name',
-		'prefix' => '',
-		'encoding' => 'utf8',
-	];
-
-	public $test = [
-		'datasource' => 'Database/Mysql',
-		'persistent' => false,
-		'host' => 'localhost',
-		'login' => 'user',
-		'password' => 'password',
-		'database' => 'test_database_name',
-		'prefix' => '',
-		'encoding' => 'utf8',
-	];
-
+/**
+ * __construct
+ *
+ * Define connections using environment variables
+ *
+ * @return void
+ */
 	public function __construct() {
-		$configs = allEnvByPrefix('DATABASE_URL');
-
-		foreach ($configs as $connection => $url) {
-			$parsed = parseEnvUrl($url);
-			if (!$parsed) {
-				continue;
-			}
-
-			$connection = strtolower($connection);
-			$this->$connection = $parsed + [
-				'datasource' => 'Database/' . ucfirst(strtolower($parsed['scheme'])),
-				'persistent' => Hash::get($parsed, 'persistent'),
-				'host'       => Hash::get($parsed, 'host'),
-				'login'      => Hash::get($parsed, 'user'),
-				'password'   => Hash::get($parsed, 'pass'),
-				'database'   => substr($parsed['path'], 1),
-				'persistent' => Hash::get($parsed, 'persistent'),
-				'encoding'   => Hash::get($parsed, 'encoding') ?: 'utf8',
-			];
+		App::uses('Env', 'Lib');
+		$configs = Env::parseDb();
+		foreach ($configs as $connection => $config) {
+			$this->$connection = $config;
 		}
 	}
 
