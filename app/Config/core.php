@@ -44,6 +44,39 @@ if (!env('APP_NAME')) {
 	}
 }
 
+// Helper function to obtain all env variables with a given prefix
+function allEnvByPrefix($prefix, $defaultKey = 'default') {
+	if (!$prefix) {
+		return array();
+	}
+
+	$values = $_ENV + $_SERVER;
+	$keys = array_keys($values);
+
+	$keys = array_filter(
+		$keys,
+		function($val) use ($prefix) {
+			return strpos($val, $prefix) === 0;
+		}
+	);
+
+	$return = array();
+	foreach($keys as $key) {
+		$val = $values[$key];
+
+		if ($key === $prefix) {
+			$key = $defaultKey;
+		} else {
+			$key = substr($key, strlen($prefix) + 1);
+		}
+
+		$return[$key] = $val;
+	}
+	ksort($return, SORT_STRING | SORT_FLAG_CASE);
+
+	return $return;
+}
+
 // Helper function to parse urls from environment variables
 function parseUrlFromEnv($key, $default = null) {
 	if (($value = env($key)) !== null) {
