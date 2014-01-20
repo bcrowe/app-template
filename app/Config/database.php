@@ -12,9 +12,14 @@ class DATABASE_CONFIG {
  * @return void
  */
 	public function __construct() {
+		$keyMap = [
+			'scheme' => 'datasource', // insufficient
+			'user' => 'login',
+			'pass' => 'password',
+		];
 		$configs = array(
-			'default' => Dsn::parse(env('DATABASE_URL'))->toArray(),
-			'test' => Dsn::parse(env('DATABASE_TEST_URL'))->toArray(),
+			'default' => Dsn::parse(env('DATABASE_URL'), $keyMap)->toArray(),
+			'test' => Dsn::parse(env('DATABASE_TEST_URL'), $keyMap)->toArray(),
 		);
 
 		foreach ($configs as $connection => $config) {

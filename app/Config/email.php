@@ -13,7 +13,9 @@ class EmailConfig {
  */
 	public function __construct() {
 		$keyMap = [
-			// to define
+			'scheme' => 'transport',
+			'user' => 'username',
+			'pass' => 'password',
 		];
 		$configs = array(
 			'default' => Dsn::parse(env('EMAIL_URL'), $keyMap)->toArray(),

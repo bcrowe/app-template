@@ -279,16 +279,16 @@ if (!env('APP_NAME')) {
 /**
  * Configure Cache from environment variables
  */
+	$defaults = [
+		'prefix' => 'my_app_',
+		'duration' => Configure::read('debug') ? '+10 seconds' : '+999 days'
+	];
 	$keyMap = [
 		'scheme' => 'engine'
 	];
 	$replacements = [
 		'PREFIX' => $defaults['prefix'],
 		'/CACHE/' => CACHE,
-	];
-	$defaults = [
-		'prefix' => 'my_app_',
-		'duration' => Configure::read('debug') ? '+10 seconds' : '+999 days'
 	];
 	$configs = array(
 		'default' => $defaults + Dsn::parse(env('CACHE_URL'), $keyMap, $replacements)->toArray(),
