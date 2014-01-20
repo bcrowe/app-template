@@ -1,4 +1,7 @@
 <?php
+
+use AD7six\Dsn\Dsn;
+
 class DATABASE_CONFIG {
 
 /**
@@ -9,10 +12,9 @@ class DATABASE_CONFIG {
  * @return void
  */
 	public function __construct() {
-		App::uses('Env', 'Lib');
 		$configs = array(
-			'default' => Env::parseDbUrl(env('DATABASE_URL')),
-			'test' => Env::parseDbUrl(env('DATABASE_TEST_URL')),
+			'default' => Dsn::parse(env('DATABASE_URL'))->toArray(),
+			'test' => Dsn::parse(env('DATABASE_TEST_URL'))->toArray(),
 		);
 
 		foreach ($configs as $connection => $config) {

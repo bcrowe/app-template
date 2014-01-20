@@ -1,4 +1,7 @@
 <?php
+
+use AD7six\Dsn\Dsn;
+
 class EmailConfig {
 
 /**
@@ -9,11 +12,13 @@ class EmailConfig {
  * @return void
  */
 	public function __construct() {
-		App::uses('Env', 'Lib');
+		$keyMap = [
+			// to define
+		];
 		$configs = array(
-			'default' => Env::parseEmailUrl(env('EMAIL_URL')),
-			'smtp' => Env::parseEmailUrl(env('EMAIL_SMTP_URL')),
-			'fast' => Env::parseEmailUrl(env('EMAIL_FAST_URL')),
+			'default' => Dsn::parse(env('EMAIL_URL'), $keyMap)->toArray(),
+			'smtp' => Dsn::parse(env('EMAIL_SMTP_URL'), $keyMap)->toArray(),
+			'fast' => Dsn::parse(env('EMAIL_FAST_URL'), $keyMap)->toArray()
 		);
 
 		foreach ($configs as $connection => $config) {

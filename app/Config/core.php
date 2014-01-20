@@ -1,4 +1,7 @@
 <?php
+
+use AD7six\Dsn\Dsn;
+
 /**
  * This is core configuration file.
  *
@@ -273,22 +276,24 @@ if (!env('APP_NAME')) {
  */
 	date_default_timezone_set('UTC');
 
-	App::uses('Env', 'Lib');
 /**
  * Configure Cache from environment variables
  */
-	$defaults = [
-		'prefix' => 'my_app_',
-		'duration' => Configure::read('debug') ? '+10 seconds' : '+999 days'
+	$keyMap = [
+		'scheme' => 'engine'
 	];
 	$replacements = [
 		'PREFIX' => $defaults['prefix'],
 		'/CACHE/' => CACHE,
 	];
+	$defaults = [
+		'prefix' => 'my_app_',
+		'duration' => Configure::read('debug') ? '+10 seconds' : '+999 days'
+	];
 	$configs = array(
-		'default' => Env::parseCacheUrl(env('CACHE_URL'), $defaults, $replacements),
-		'_cake_core_' => Env::parseCacheUrl(env('CACHE_CAKE_CORE_URL'), $defaults, $replacements),
-		'_cake_model_' => Env::parseCacheUrl(env('CACHE_CAKE_MODEL_URL'), $defaults, $replacements),
+		'default' => $defaults + Dsn::parse(env('CACHE_URL'), $keyMap, $replacements)->toArray(),
+		'_cake_core_' => $defaults + Dsn::parse(env('CACHE_CAKE_CORE_URL'), $keyMap, $replacements)->toArray(),
+		'_cake_model_' => $defaults + Dsn::parse(env('CACHE_CAKE_MODEL_URL'), $keyMap, $replacements)->toArray(),
 	);
 	foreach($configs as $name => $config) {
 		Cache::config($name, $config);
@@ -297,11 +302,15 @@ if (!env('APP_NAME')) {
 /**
  * Configure logs from environment variables
  */
-	$defaults = [];
-	$replacements['/LOGS/'] = LOGS;
+	$keyMap = [
+		'scheme' => 'engine'
+	];
+	$replacements = [
+		'/LOGS/' => LOGS
+	];
 	$configs = array(
-		'default' => Env::parseLogUrl(env('LOG_URL'), $defaults, $replacements),
-		'error' => Env::parseLogUrl(env('LOG_ERROR_URL'), $defaults, $replacements),
+		'default' => Dsn::parse(env('LOG_URL'), $keyMap, $replacements)->toArray(),
+		'error' => Dsn::parse(env('LOG_ERROR_URL'), $keyMap, $replacements)->toArray(),
 	);
 	foreach($configs as $name => $config) {
 		CakeLog::config($name, $config);
