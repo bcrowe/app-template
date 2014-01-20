@@ -17,11 +17,11 @@ class EmailConfig {
 			'user' => 'username',
 			'pass' => 'password',
 		];
-		$configs = array(
+		$configs = [
 			'default' => Dsn::parse(env('EMAIL_URL'), $keyMap)->toArray(),
 			'smtp' => Dsn::parse(env('EMAIL_SMTP_URL'), $keyMap)->toArray(),
 			'fast' => Dsn::parse(env('EMAIL_FAST_URL'), $keyMap)->toArray()
-		);
+		];
 
 		foreach ($configs as $connection => $config) {
 			$this->$connection = $config;

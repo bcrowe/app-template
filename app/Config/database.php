@@ -17,10 +17,10 @@ class DATABASE_CONFIG {
 			'user' => 'login',
 			'pass' => 'password',
 		];
-		$configs = array(
+		$configs = [
 			'default' => Dsn::parse(env('DATABASE_URL'), $keyMap)->toArray(),
 			'test' => Dsn::parse(env('DATABASE_TEST_URL'), $keyMap)->toArray(),
-		);
+		];
 
 		foreach ($configs as $connection => $config) {
 			$this->$connection = $config;

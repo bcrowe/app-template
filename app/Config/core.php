@@ -290,11 +290,11 @@ if (!env('APP_NAME')) {
 		'PREFIX' => $defaults['prefix'],
 		'/CACHE/' => CACHE,
 	];
-	$configs = array(
+	$configs = [
 		'default' => $defaults + Dsn::parse(env('CACHE_URL'), $keyMap, $replacements)->toArray(),
 		'_cake_core_' => $defaults + Dsn::parse(env('CACHE_CAKE_CORE_URL'), $keyMap, $replacements)->toArray(),
 		'_cake_model_' => $defaults + Dsn::parse(env('CACHE_CAKE_MODEL_URL'), $keyMap, $replacements)->toArray(),
-	);
+	];
 	foreach($configs as $name => $config) {
 		Cache::config($name, $config);
 	}
@@ -308,10 +308,10 @@ if (!env('APP_NAME')) {
 	$replacements = [
 		'/LOGS/' => LOGS
 	];
-	$configs = array(
+	$configs = [
 		'default' => Dsn::parse(env('LOG_URL'), $keyMap, $replacements)->toArray(),
 		'error' => Dsn::parse(env('LOG_ERROR_URL'), $keyMap, $replacements)->toArray(),
-	);
+	];
 	foreach($configs as $name => $config) {
 		CakeLog::config($name, $config);
 	}
