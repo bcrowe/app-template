@@ -65,7 +65,7 @@ if (!env('APP_NAME')) {
  * In production mode, flash messages redirect after a time interval.
  * In development mode, you need to click the flash message to continue.
  */
-	Configure::write('debug', env('DEBUG') ?: 0);
+	Configure::write('debug', (int)env('DEBUG'));
 
 /**
  * Configure the Error handler used to handle errors for your application. By default
@@ -226,12 +226,12 @@ if (!env('APP_NAME')) {
 /**
  * A random string used in security hashing methods.
  */
-	Configure::write('Security.salt', env('SECURITY_SALT') ?: 'DYhG93b0qyJfIxfs2guVoUubWwvniR2G0FgaC9mi');
+	Configure::write('Security.salt', env('SECURITY_SALT'));
 
 /**
  * A random numeric string (digits only) used to encrypt/decrypt strings.
  */
-	Configure::write('Security.cipherSeed', env('SECURITY_CIPHER_SEED') ?: '76859309657453542496749683645');
+	Configure::write('Security.cipherSeed', env('SECURITY_CIPHER_SEED'));
 
 /**
  * Apply timestamps with the last modified time to static assets (js, css, images).
