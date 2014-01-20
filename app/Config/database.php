@@ -10,7 +10,11 @@ class DATABASE_CONFIG {
  */
 	public function __construct() {
 		App::uses('Env', 'Lib');
-		$configs = Env::parseDb();
+		$configs = array(
+			'default' => Env::parseDbUrl(env('DATABASE_URL')),
+			'test' => Env::parseDbUrl(env('DATABASE_TEST_URL')),
+		);
+
 		foreach ($configs as $connection => $config) {
 			$this->$connection = $config;
 		}
